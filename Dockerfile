@@ -1,11 +1,13 @@
-FROM ubuntu:18.04
+FROM ubuntu:20.04
 
-ENV PRIVACYIDEA_VERSION=v3.2.2
 ENV PRIVACYIDEA_CONFIGFILE=/etc/privacyidea/pi.cfg
+ENV TZ=Europe/Prague
 
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 RUN apt-get update \
   # build deps
   && apt-get install -y \
+    apt-utils \
     build-essential \
     default-libmysqlclient-dev \
     libffi-dev \
@@ -25,6 +27,7 @@ RUN apt-get update \
   && apt-get install -y \
     python3 \
     python3-pip \
+    python-is-python3 \
   # apache, mods and wsgi (python support)
   && apt-get install -y \
     apache2 \
@@ -41,12 +44,13 @@ RUN apt-get update \
   && mkdir -p /var/log/privacyidea && touch /var/log/privacyidea/privacyidea.log && chmod a+rw /var/log/privacyidea/privacyidea.log \
   # check python
   && python3 --version \
-  # install privacyIDEA
-  && pip3 install --no-cache-dir "privacyidea==$PRIVACYIDEA_VERSION" \
+  && pip3 install --upgrade setuptools \
+  && pip3 install --upgrade pip \
   # mysql driver
   && pip3 install --no-cache-dir 'pymysql-sa==1.0' 'PyMySQL==0.9.3' \
   # deps
-  && pip3 install --no-cache-dir -r "https://raw.githubusercontent.com/privacyidea/privacyidea/$PRIVACYIDEA_VERSION/requirements.txt" \
+  && pip3 install --no-cache-dir -r "https://raw.githubusercontent.com/privacyidea/privacyidea/v3.6/requirements.txt" \
+  && pip3 install --no-cache-dir 'privacyidea==3.6' \
   # cleanup
   && rm -rf /var/lib/apt/lists/*
 
